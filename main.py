@@ -158,15 +158,23 @@ def main():
         # Add more videos as needed
     ]
 
-    features = []
-    labels = []
     for video in videos:
+        # Check if the record already exists in the database
+        cursor.execute("SELECT * FROM training_data WHERE URL=?", (video['url'],))
+        existing_record = cursor.fetchone()
+        if existing_record:
+            print("Record already exists for URL:", video['url'])
+            continue
+
         text = extract_features(video['url'])
-        features.append(text)
-        labels.append(video['label'])
         insert_data(video['title'], video['url'], text, video['label'])
 
     # Train your model
+    cursor.execute("SELECT Transcription, [Productivity Label] FROM training_data")
+    rows = cursor.fetchall()
+    features = [row[0] for row in rows]
+    labels = [row[1] for row in rows]
+
     model, vectorizer = train_model(features, labels)
 
     # Example usage:
