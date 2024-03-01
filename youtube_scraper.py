@@ -8,7 +8,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common import TimeoutException
-import json
 
 # Function to create a connection to the SQLite database
 def create_connection(db_file):
@@ -30,15 +29,15 @@ def create_table(conn, create_table_sql):
 
 # Function to insert a new row into the SQLite database
 def insert_data(conn, data):
-    sql = ''' INSERT INTO videos(title, description, views, likes, tags, keywords, url)
-              VALUES(?,?,?,?,?,?,?) '''
+    sql = ''' INSERT INTO videos(title, description, views, tags, keywords, url)
+              VALUES(?,?,?,?,?,?) '''
     cur = conn.cursor()
     cur.execute(sql, data)
     conn.commit()
     return cur.lastrowid
 
 # Path to the SQLite database
-database = "videos.db"
+database = "videoData.db"
 
 # SQL statement to create the videos table
 create_table_sql = """ CREATE TABLE IF NOT EXISTS videos (
@@ -46,7 +45,6 @@ create_table_sql = """ CREATE TABLE IF NOT EXISTS videos (
                                 title TEXT NOT NULL,
                                 description TEXT,
                                 views INTEGER,
-                                likes INTEGER,
                                 tags TEXT,
                                 keywords TEXT,
                                 url TEXT NOT NULL
@@ -88,7 +86,7 @@ try:
         accept_all_button = consent_buttons[1]
         accept_all_button.click()
 except TimeoutException:
-    print('Cookie modal missing')
+    pass
 
 # wait for YouTube to load the page data
 WebDriverWait(driver, 15).until(
@@ -132,10 +130,6 @@ description = driver \
     .find_element(By.CSS_SELECTOR, '#description-inline-expander .ytd-text-inline-expander span') \
     .text
 
-likes = driver \
-    .find_element(By.ID, 'yt-spec-button-shape-next__button-text-content') \
-    .text
-
 # Placeholder for tags and keywords, you need to implement logic to extract them
 tags = ""
 keywords = ""
@@ -144,7 +138,7 @@ keywords = ""
 driver.quit()
 
 # Data to be inserted into the database
-data = (title, description, int(views.replace(',', '')), int(likes.replace(',', '')), tags, keywords, url)
+data = (title, description, int(views.replace(',', '')), tags, keywords, url)
 
 # Insert data into the SQLite database
 with conn:
